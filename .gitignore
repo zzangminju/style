@@ -1,0 +1,20 @@
+# Vercel
+.vercel
+
+# 환경변수 (API 키는 절대 커밋하지 않기)
+.env
+.env.local
+
+# 파이썬
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 로컬 테스트 전용 (배포 불필요)
+dev_server.py
+
+# 에디터/도구 로컬 설정
+.claude/

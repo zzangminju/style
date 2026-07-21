@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>맞춰봄 — What to wear, solved.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,900;1,9..144,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eceae4;
+    --ink: #141210;
+    --muted: #78736b;
+    --accent: #b8412a;
+    --line: #141210;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, "Apple SD Gothic Neo", sans-serif;
+    background: var(--paper); color: var(--ink); line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .serif { font-family: 'Fraunces', serif; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    mix-blend-mode: difference; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 40px;
+  }
+  .logo { font-family: 'Fraunces', serif; font-weight: 900; font-size: 22px; letter-spacing: -0.02em; }
+  .nav-links { display: flex; gap: 30px; }
+  .nav-links button {
+    background: none; border: none; font-family: 'Inter', sans-serif; color: #fff;
+    font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    cursor: pointer; opacity: 0.7; transition: opacity 0.2s;
+  }
+  .nav-links button.active, .nav-links button:hover { opacity: 1; }
+
+  .page { display: none; }
+  .page.show { display: block; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 40px; }
+
+  /* ── HERO: 화보가 화면을 채움 ── */
+  .hero {
+    height: 100vh; min-height: 620px; position: relative;
+    background: url('https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1600&auto=format&fit=crop') center 30%/cover no-repeat;
+    display: flex; align-items: flex-end; color: #fff;
+  }
+  .hero::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 100%);
+  }
+  .hero-inner { position: relative; z-index: 2; width: 100%; padding: 0 40px 56px; }
+  .hero-tag {
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 20px; opacity: 0.85;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif; font-weight: 900;
+    font-size: clamp(56px, 12vw, 168px); line-height: 0.86; letter-spacing: -0.04em;
+    margin-bottom: 30px;
+  }
+  .hero h1 em { font-weight: 300; font-style: italic; }
+  .hero-foot { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 24px; }
+  .hero-foot p { max-width: 380px; font-size: 15px; line-height: 1.6; opacity: 0.9; }
+  .cta {
+    background: #fff; color: var(--ink); border: none; font-family: 'Inter', sans-serif;
+    font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500;
+    padding: 17px 38px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .cta:hover { background: var(--accent); color: #fff; }
+
+  /* ── 목차 ── */
+  .index { padding: 90px 0; }
+  .index-label { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 40px; }
+  .index-row {
+    display: grid; grid-template-columns: 80px 1.2fr 1.8fr; gap: 30px;
+    padding: 28px 0; border-top: 1px solid #c9c5bd; align-items: center;
+  }
+  .index-row:last-child { border-bottom: 1px solid #c9c5bd; }
+  .index-row .no { font-family: 'Fraunces', serif; font-size: 40px; font-weight: 300; font-style: italic; color: var(--accent); }
+  .index-row h3 { font-family: 'Fraunces', serif; font-size: 30px; font-weight: 600; }
+  .index-row p { font-size: 15px; color: var(--muted); }
+
+  /* ── 코디 추천 ── */
+  .rec-top {
+    height: 44vh; min-height: 320px; position: relative; display: flex; align-items: center;
+    background: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&auto=format&fit=crop') center 25%/cover no-repeat;
+    color: #fff;
+  }
+  .rec-top::after { content:''; position:absolute; inset:0; background: rgba(0,0,0,0.35); }
+  .rec-top .rec-head { position: relative; z-index: 2; }
+  .kicker { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 16px; }
+  .rec-top h2 { font-family: 'Fraunces', serif; font-size: clamp(42px, 8vw, 96px); font-weight: 900; line-height: 0.9; letter-spacing: -0.03em; }
+
+  .form-wrap { display: grid; grid-template-columns: 1fr 1fr; }
+  .form-side { padding: 64px 60px 64px 0; }
+  .result-side { padding: 64px 0 64px 60px; border-left: 1px solid #c9c5bd; }
+  @media (max-width: 800px) {
+    .form-wrap { grid-template-columns: 1fr; }
+    .form-side { padding: 48px 0; }
+    .result-side { padding: 48px 0; border-left: none; border-top: 1px solid #c9c5bd; }
+  }
+  .field { margin-bottom: 32px; }
+  .field label { display: block; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; color: var(--muted); margin-bottom: 14px; }
+  .field input {
+    width: 100%; border: none; border-bottom: 1.5px solid var(--ink);
+    padding: 8px 0; font-size: 24px; font-family: 'Fraunces', serif;
+    background: transparent; color: var(--ink);
+  }
+  .field input::placeholder { color: #b3aea5; font-style: italic; }
+  .field input:focus { outline: none; border-bottom-color: var(--accent); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .chips button {
+    background: transparent; border: 1px solid var(--ink); padding: 9px 18px;
+    font-size: 13px; font-family: 'Inter', sans-serif; color: var(--ink); cursor: pointer; transition: all 0.15s;
+  }
+  .chips button.on { background: var(--ink); color: var(--paper); }
+  .submit {
+    width: 100%; background: var(--ink); color: var(--paper); border: none;
+    font-family: 'Inter', sans-serif; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 20px; cursor: pointer; margin-top: 8px; transition: background 0.2s;
+  }
+  .submit:hover { background: var(--accent); }
+  .msg { font-size: 14px; margin-top: 16px; min-height: 20px; color: var(--accent); font-style: italic; }
+  .result-side .placeholder { color: #b3aea5; font-family: 'Fraunces', serif; font-style: italic; font-size: 26px; line-height: 1.5; }
+  .result-title { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; display: none; }
+  #resultText { font-family: 'Fraunces', serif; font-size: 22px; line-height: 1.6; display: none; }
+  #resultText.show, .result-title.show { display: block; }
+
+  /* ── 갤러리 ── */
+  .gallery { padding: 90px 0; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .tile { aspect-ratio: 3/4; position: relative; overflow: hidden; }
+  .tile img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+  .tile:hover img { transform: scale(1.05); }
+  .tile .cap {
+    position: absolute; left: 0; bottom: 0; right: 0; z-index: 2; padding: 22px;
+    color: #fff; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+  }
+  .tile .cap .t-no { font-family: 'Fraunces', serif; font-style: italic; font-size: 14px; opacity: 0.85; }
+  .tile .cap .t-name { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+  @media (max-width: 800px) { .gallery-grid { grid-template-columns: 1fr 1fr; } }
+
+  footer {
+    border-top: 1px solid var(--ink); padding: 44px 40px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+    font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  }
+  @media (max-width: 600px) {
+    nav { padding: 18px 20px; } .nav-links { gap: 16px; }
+    .wrap { padding: 0 20px; } .hero-inner { padding: 0 20px 40px; }
+    .form-side, .result-side { padding: 40px 0; }
+    .index-row { grid-template-columns: 50px 1fr; gap: 16px; }
+    .index-row p { grid-column: 2; }
+    .index-row .no { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">맞춰봄</div>
+  <div class="nav-links">
+    <button class="active" data-page="home" onclick="go('home')">Cover</button>
+    <button data-page="recommend" onclick="go('recommend')">Styling</button>
+    <button data-page="gallery" onclick="go('gallery')">Gallery</button>
+  </div>
+</nav>
+
+<!-- 1. 메인 -->
+<section class="page show" id="home">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-tag">Issue 01 — A styling guide</div>
+      <h1>What to<br><em>wear,</em> solved.</h1>
+      <div class="hero-foot">
+        <p>산 옷은 많은데 뭘 어떻게 입을지 모르겠다면. 가진 옷과 갈 곳만 알려주세요. 유행이 아니라 어울림 기준으로 코디를 짜드립니다.</p>
+        <button class="cta" onclick="go('recommend')">Start styling</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="index">
+      <div class="index-label">How it works</div>
+      <div class="index-row"><span class="no">01</span><h3>Your pieces</h3><p>매치하고 싶은 아이템을 적습니다. 옷장에 있는 그 옷이요.</p></div>
+      <div class="index-row"><span class="no">02</span><h3>The occasion</h3><p>어디에 가는지 고릅니다. 자리가 정해지면 답도 좁혀집니다.</p></div>
+      <div class="index-row"><span class="no">03</span><h3>The look</h3><p>그 옷을 그 자리에 어떻게 입을지, 코디 제안을 받습니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. 코디 추천 -->
+<section class="page" id="recommend">
+  <div class="rec-top">
+    <div class="wrap">
+      <div class="rec-head">
+        <div class="kicker">Styling</div>
+        <h2>Let's build<br>your look.</h2>
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="form-wrap">
+      <div class="form-side">
+        <div class="field">
+          <label>Your pieces / 가진 아이템</label>
+          <input type="text" id="item" placeholder="베이지 트렌치, 청바지">
+        </div>
+        <div class="field">
+          <label>The occasion / 어디 가나요</label>
+          <div class="chips" id="chips">
+            <button onclick="pick(this,'소개팅')">소개팅</button>
+            <button onclick="pick(this,'출근')">출근</button>
+            <button onclick="pick(this,'주말 나들이')">주말 나들이</button>
+            <button onclick="pick(this,'친구 모임')">친구 모임</button>
+            <button onclick="pick(this,'데이트')">데이트</button>
+          </div>
+          <input type="text" id="situation" placeholder="직접 입력해도 됩니다">
+        </div>
+        <button class="submit" onclick="recommend()">Get the look</button>
+        <div class="msg" id="msg"></div>
+      </div>
+      <div class="result-side">
+        <div class="result-title" id="resultTitle">Your look</div>
+        <p class="placeholder" id="placeholder">코디는 이 자리에 나타납니다. 왼쪽을 먼저 채워주세요.</p>
+        <p id="resultText"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. 갤러리 -->
+<section class="page" id="gallery">
+  <div class="wrap">
+    <div class="index" style="padding-bottom:40px;">
+      <div class="kicker" style="color:var(--accent)">Gallery</div>
+      <h2 class="serif" style="font-size:clamp(38px,6vw,64px);font-weight:900;line-height:1;letter-spacing:-0.02em;">Looks by occasion.</h2>
+    </div>
+    <div class="gallery-grid">
+      <div class="tile"><img src="https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 01</div><div class="t-name">Daily casual</div></div></div>
+      <div class="tile"><img src="https://images.unsplash.com/photo-1507680434567-5739c80be1ac?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 02</div><div class="t-name">Office</div></div></div>
+      <div class="tile"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 03</div><div class="t-name">Date night</div></div></div>
+      <div class="tile"><img src="https://images.unsplash.com/photo-1475180098004-ca77a66827be?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 04</div><div class="t-name">Weekend</div></div></div>
+      <div class="tile"><img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 05</div><div class="t-name">Gathering</div></div></div>
+      <div class="tile"><img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 06</div><div class="t-name">In spring</div></div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>맞춰봄 — Issue 01</span>
+  <span>For those who own the clothes but not the combinations</span>
+</footer>
+
+<script>
+  function go(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('show'));
+    document.getElementById(id).classList.add('show');
+    document.querySelectorAll('.nav-links button').forEach(b => b.classList.toggle('active', b.dataset.page === id));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function pick(btn, value) {
+    document.querySelectorAll('#chips button').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('situation').value = value;
+  }
+  async function recommend() {
+    const item = document.getElementById('item').value.trim();
+    const situation = document.getElementById('situation').value.trim();
+    const msg = document.getElementById('msg');
+    if (!item) { msg.textContent = '매치하고 싶은 아이템을 입력해 주세요.'; return; }
+    if (!situation) { msg.textContent = '어디 가는지 알려주면 더 잘 맞춰드려요.'; return; }
+
+    const btn = document.querySelector('.submit');
+    const rt = document.getElementById('resultText');
+    msg.textContent = '';
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('resultTitle').classList.add('show');
+    rt.classList.add('show');
+    rt.textContent = 'AI가 코디를 짜는 중…';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item, situation })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '추천을 불러오지 못했어요.');
+      rt.textContent = data.result;
+    } catch (err) {
+      rt.textContent = '';
+      rt.classList.remove('show');
+      document.getElementById('placeholder').style.display = 'block';
+      document.getElementById('placeholder').textContent = '문제가 생겼어요. 잠시 후 다시 시도해 주세요.';
+      msg.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('recommend').classList.contains('show')) recommend();
+  });
+</script>
+</body>
+</html>
