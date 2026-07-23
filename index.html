@@ -145,6 +145,22 @@
   .load-bar::after { content: ''; display: block; height: 100%; width: 40%; background: var(--accent); animation: sweep 1.2s ease-in-out infinite; }
   @keyframes sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(320%); } }
 
+  /* ── 항목별 코디 결과 ── */
+  .look { display: none; }
+  .look.show { display: block; animation: riseIn 0.6s ease both; }
+  .look-summary {
+    font-family: 'Fraunces', serif; font-style: italic; font-size: clamp(22px, 3.5vw, 27px);
+    line-height: 1.45; color: var(--ink); padding-bottom: 26px; margin-bottom: 8px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .look-row { display: grid; grid-template-columns: 82px 1fr; gap: 18px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid #d3cec5; }
+  .look-row:last-child { border-bottom: none; }
+  .look-label { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .look-value { font-family: 'Fraunces', serif; font-size: 18px; line-height: 1.5; }
+  @media (max-width: 600px) {
+    .look-row { grid-template-columns: 64px 1fr; gap: 12px; }
+  }
+
   /* ── 갤러리 ── */
   .gallery { padding: 90px 0; }
   .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
@@ -254,7 +270,10 @@
           <span class="load-word">코디를 짜는 중<span class="dots"><span>.</span><span>.</span><span>.</span></span></span>
           <div class="load-bar"></div>
         </div>
-        <p id="resultText"></p>
+        <div class="look" id="lookCard">
+          <p class="look-summary" id="lookSummary"></p>
+          <div class="look-list" id="lookList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -303,14 +322,13 @@
     if (!situation) { msg.textContent = '어디 가는지 알려주면 더 잘 맞춰드려요.'; return; }
 
     const btn = document.querySelector('.submit');
-    const rt = document.getElementById('resultText');
+    const lookCard = document.getElementById('lookCard');
     const loading = document.getElementById('loading');
     const placeholder = document.getElementById('placeholder');
     msg.textContent = '';
     placeholder.style.display = 'none';
     document.getElementById('resultTitle').classList.add('show');
-    rt.classList.remove('show');
-    rt.textContent = '';
+    lookCard.classList.remove('show');
     loading.classList.add('show');
     btn.disabled = true;
 
@@ -322,19 +340,44 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || '추천을 불러오지 못했어요.');
+      const outfit = data.result;
+      if (!outfit || typeof outfit !== 'object') throw new Error('추천 결과 형식이 올바르지 않아요.');
       loading.classList.remove('show');
-      rt.textContent = data.result;
-      rt.classList.add('show');
+      renderLook(outfit);
+      lookCard.classList.add('show');
     } catch (err) {
       loading.classList.remove('show');
-      rt.textContent = '';
-      rt.classList.remove('show');
+      lookCard.classList.remove('show');
       placeholder.style.display = 'block';
       placeholder.textContent = '문제가 생겼어요. 잠시 후 다시 시도해 주세요.';
       msg.textContent = err.message;
     } finally {
       btn.disabled = false;
     }
+  }
+  // 코디 객체를 항목별 카드로 그린다. 값이 비어 있는 항목은 건너뛴다.
+  function renderLook(outfit) {
+    document.getElementById('lookSummary').textContent = outfit.summary || '';
+    const list = document.getElementById('lookList');
+    list.innerHTML = '';
+    const fields = [
+      ['top', '상의'], ['bottom', '하의'], ['outer', '아우터'],
+      ['shoes', '신발'], ['point', '포인트']
+    ];
+    fields.forEach(([key, label]) => {
+      const value = (outfit[key] || '').trim();
+      if (!value) return;
+      const row = document.createElement('div');
+      row.className = 'look-row';
+      const l = document.createElement('span');
+      l.className = 'look-label';
+      l.textContent = label;
+      const v = document.createElement('span');
+      v.className = 'look-value';
+      v.textContent = value;
+      row.append(l, v);
+      list.appendChild(row);
+    });
   }
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && document.getElementById('recommend').classList.contains('show')) recommend();
