@@ -130,6 +130,20 @@
   .result-title { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; display: none; }
   #resultText { font-family: 'Fraunces', serif; font-size: 22px; line-height: 1.6; display: none; }
   #resultText.show, .result-title.show { display: block; }
+  #resultText.show { animation: riseIn 0.6s ease both; }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  /* ── 로딩 상태 ── */
+  .loading { display: none; }
+  .loading.show { display: block; }
+  .load-word { font-family: 'Fraunces', serif; font-style: italic; font-size: 26px; color: var(--muted); }
+  .load-word .dots span { display: inline-block; animation: blink 1.4s infinite both; }
+  .load-word .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .load-word .dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: 0.15; } 40% { opacity: 1; } }
+  .load-bar { height: 1.5px; background: #c9c5bd; margin-top: 22px; overflow: hidden; }
+  .load-bar::after { content: ''; display: block; height: 100%; width: 40%; background: var(--accent); animation: sweep 1.2s ease-in-out infinite; }
+  @keyframes sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(320%); } }
 
   /* ── 갤러리 ── */
   .gallery { padding: 90px 0; }
@@ -228,6 +242,10 @@
       <div class="result-side">
         <div class="result-title" id="resultTitle">Your look</div>
         <p class="placeholder" id="placeholder">코디는 이 자리에 나타납니다. 왼쪽을 먼저 채워주세요.</p>
+        <div class="loading" id="loading">
+          <span class="load-word">코디를 짜는 중<span class="dots"><span>.</span><span>.</span><span>.</span></span></span>
+          <div class="load-bar"></div>
+        </div>
         <p id="resultText"></p>
       </div>
     </div>
@@ -278,11 +296,14 @@
 
     const btn = document.querySelector('.submit');
     const rt = document.getElementById('resultText');
+    const loading = document.getElementById('loading');
+    const placeholder = document.getElementById('placeholder');
     msg.textContent = '';
-    document.getElementById('placeholder').style.display = 'none';
+    placeholder.style.display = 'none';
     document.getElementById('resultTitle').classList.add('show');
-    rt.classList.add('show');
-    rt.textContent = 'AI가 코디를 짜는 중…';
+    rt.classList.remove('show');
+    rt.textContent = '';
+    loading.classList.add('show');
     btn.disabled = true;
 
     try {
@@ -293,12 +314,15 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || '추천을 불러오지 못했어요.');
+      loading.classList.remove('show');
       rt.textContent = data.result;
+      rt.classList.add('show');
     } catch (err) {
+      loading.classList.remove('show');
       rt.textContent = '';
       rt.classList.remove('show');
-      document.getElementById('placeholder').style.display = 'block';
-      document.getElementById('placeholder').textContent = '문제가 생겼어요. 잠시 후 다시 시도해 주세요.';
+      placeholder.style.display = 'block';
+      placeholder.textContent = '문제가 생겼어요. 잠시 후 다시 시도해 주세요.';
       msg.textContent = err.message;
     } finally {
       btn.disabled = false;
