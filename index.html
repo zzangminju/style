@@ -123,7 +123,8 @@
     }
   }
   .field { margin-bottom: 32px; }
-  .field label { display: block; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; color: var(--muted); margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; color: var(--muted); margin-bottom: 5px; }
+  .field .hint { display: block; font-size: 13px; color: var(--muted); margin-bottom: 16px; font-family: 'Inter', sans-serif; }
   .field input {
     width: 100%; border: none; border-bottom: 1.5px solid var(--ink);
     padding: 8px 0; font-size: 24px; font-family: 'Fraunces', serif;
@@ -273,11 +274,13 @@
     <div class="form-wrap">
       <div class="form-side">
         <div class="field">
-          <label>Your pieces / 가진 아이템</label>
+          <label>Your pieces</label>
+          <span class="hint">가지고 있는 옷을 적어주세요</span>
           <input type="text" id="item" placeholder="베이지 트렌치, 청바지">
         </div>
         <div class="field">
-          <label>The occasion / 어디 가나요</label>
+          <label>The occasion</label>
+          <span class="hint">어디에 가는지 골라주세요</span>
           <div class="chips" id="chips">
             <button onclick="pick(this,'소개팅')">소개팅</button>
             <button onclick="pick(this,'출근')">출근</button>
