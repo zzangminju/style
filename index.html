@@ -164,15 +164,32 @@
   /* ── 갤러리 ── */
   .gallery { padding: 90px 0; }
   .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-  .tile { aspect-ratio: 3/4; position: relative; overflow: hidden; }
+  .tile { aspect-ratio: 3/4; position: relative; overflow: hidden; background: var(--ink); cursor: pointer; }
   .tile img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
   .tile:hover img { transform: scale(1.05); }
+  .tile:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
   .tile .cap {
     position: absolute; left: 0; bottom: 0; right: 0; z-index: 2; padding: 22px;
     color: #fff; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
   }
   .tile .cap .t-no { font-family: 'Fraunces', serif; font-style: italic; font-size: 14px; opacity: 0.85; }
   .tile .cap .t-name { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+  /* 클릭 가능 힌트: 호버 시 나타남 */
+  .tile-hint {
+    position: absolute; top: 14px; left: 14px; z-index: 3;
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500;
+    background: var(--accent); color: #fff; padding: 7px 12px;
+    opacity: 0; transform: translateY(-6px); transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+  }
+  .tile:hover .tile-hint, .tile:focus-visible .tile-hint { opacity: 1; transform: translateY(0); }
+  /* 이미지 로드 실패 시: 이미지 숨기고 라벨을 배경 위에 표시 */
+  .tile.failed img { display: none; }
+  .tile.failed::before {
+    content: attr(data-label); position: absolute; inset: 0; z-index: 1;
+    display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px;
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 20px; color: #fff; opacity: 0.45;
+  }
   @media (max-width: 800px) { .gallery-grid { grid-template-columns: 1fr 1fr; } }
 
   footer {
@@ -287,12 +304,42 @@
       <h2 class="serif" style="font-size:clamp(38px,6vw,64px);font-weight:900;line-height:1;letter-spacing:-0.02em;">Looks by occasion.</h2>
     </div>
     <div class="gallery-grid">
-      <div class="tile"><img src="https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 01</div><div class="t-name">Daily casual</div></div></div>
-      <div class="tile"><img src="https://images.unsplash.com/photo-1507680434567-5739c80be1ac?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 02</div><div class="t-name">Office</div></div></div>
-      <div class="tile"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 03</div><div class="t-name">Date night</div></div></div>
-      <div class="tile"><img src="https://images.unsplash.com/photo-1475180098004-ca77a66827be?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 04</div><div class="t-name">Weekend</div></div></div>
-      <div class="tile"><img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 05</div><div class="t-name">Gathering</div></div></div>
-      <div class="tile"><img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=800&auto=format&fit=crop" alt=""><div class="cap"><div class="t-no">No. 06</div><div class="t-name">In spring</div></div></div>
+      <div class="tile" data-label="Daily casual" role="button" tabindex="0" aria-label="친구 모임 상황으로 코디 받기"
+           onclick="openStyling('친구 모임')" onkeydown="tileKey(event,'친구 모임')">
+        <img src="https://images.unsplash.com/photo-1578102718171-ec1f91680562?q=80&w=800&auto=format&fit=crop" alt="Daily casual 코디 예시" onerror="this.parentElement.classList.add('failed')">
+        <span class="tile-hint">이 상황으로 코디하기 →</span>
+        <div class="cap"><div class="t-no">No. 01</div><div class="t-name">Daily casual</div></div>
+      </div>
+      <div class="tile" data-label="Office" role="button" tabindex="0" aria-label="출근 상황으로 코디 받기"
+           onclick="openStyling('출근')" onkeydown="tileKey(event,'출근')">
+        <img src="https://images.unsplash.com/photo-1514336979248-0d11928b751d?q=80&w=800&auto=format&fit=crop" alt="Office 코디 예시" onerror="this.parentElement.classList.add('failed')">
+        <span class="tile-hint">이 상황으로 코디하기 →</span>
+        <div class="cap"><div class="t-no">No. 02</div><div class="t-name">Office</div></div>
+      </div>
+      <div class="tile" data-label="Date night" role="button" tabindex="0" aria-label="데이트 상황으로 코디 받기"
+           onclick="openStyling('데이트')" onkeydown="tileKey(event,'데이트')">
+        <img src="https://images.unsplash.com/photo-1765730597284-12e65abf0caa?q=80&w=800&auto=format&fit=crop" alt="Date night 코디 예시" onerror="this.parentElement.classList.add('failed')">
+        <span class="tile-hint">이 상황으로 코디하기 →</span>
+        <div class="cap"><div class="t-no">No. 03</div><div class="t-name">Date night</div></div>
+      </div>
+      <div class="tile" data-label="Weekend" role="button" tabindex="0" aria-label="주말 나들이 상황으로 코디 받기"
+           onclick="openStyling('주말 나들이')" onkeydown="tileKey(event,'주말 나들이')">
+        <img src="https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?q=80&w=800&auto=format&fit=crop" alt="Weekend 코디 예시" onerror="this.parentElement.classList.add('failed')">
+        <span class="tile-hint">이 상황으로 코디하기 →</span>
+        <div class="cap"><div class="t-no">No. 04</div><div class="t-name">Weekend</div></div>
+      </div>
+      <div class="tile" data-label="Gathering" role="button" tabindex="0" aria-label="파티 상황으로 코디 받기"
+           onclick="openStyling('파티')" onkeydown="tileKey(event,'파티')">
+        <img src="https://images.unsplash.com/photo-1503315082045-a2bfb5e7f56e?q=80&w=800&auto=format&fit=crop" alt="Gathering 코디 예시" onerror="this.parentElement.classList.add('failed')">
+        <span class="tile-hint">이 상황으로 코디하기 →</span>
+        <div class="cap"><div class="t-no">No. 05</div><div class="t-name">Gathering</div></div>
+      </div>
+      <div class="tile" data-label="In spring" role="button" tabindex="0" aria-label="여행 상황으로 코디 받기"
+           onclick="openStyling('여행')" onkeydown="tileKey(event,'여행')">
+        <img src="https://images.unsplash.com/photo-1557776198-8b17010cbbb7?q=80&w=800&auto=format&fit=crop" alt="In spring 코디 예시" onerror="this.parentElement.classList.add('failed')">
+        <span class="tile-hint">이 상황으로 코디하기 →</span>
+        <div class="cap"><div class="t-no">No. 06</div><div class="t-name">In spring</div></div>
+      </div>
     </div>
   </div>
 </section>
@@ -313,6 +360,31 @@
     document.querySelectorAll('#chips button').forEach(b => b.classList.remove('on'));
     btn.classList.add('on');
     document.getElementById('situation').value = value;
+  }
+  // 값으로 상황 칩을 선택한다 (일치하는 칩이 있으면 강조 표시).
+  function selectSituation(value) {
+    let matched = false;
+    document.querySelectorAll('#chips button').forEach(b => {
+      const on = b.textContent.trim() === value;
+      b.classList.toggle('on', on);
+      if (on) matched = true;
+    });
+    // 칩에 없는 상황이면 입력칸에만 채운다
+    document.getElementById('situation').value = value;
+    return matched;
+  }
+  // 갤러리 타일 클릭 → Styling 페이지로 이동하며 해당 상황을 자동 선택.
+  function openStyling(situation) {
+    go('recommend');
+    selectSituation(situation);
+    document.getElementById('item').focus();
+  }
+  // 타일에서 Enter/Space 키로도 클릭과 동일하게 동작.
+  function tileKey(event, situation) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openStyling(situation);
+    }
   }
   async function recommend() {
     const item = document.getElementById('item').value.trim();
