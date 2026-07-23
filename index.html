@@ -276,7 +276,7 @@
         <div class="field">
           <label>Your pieces</label>
           <span class="hint">가지고 있는 옷을 적어주세요</span>
-          <input type="text" id="item" placeholder="베이지 트렌치, 청바지">
+          <input type="text" id="item" maxlength="200" placeholder="베이지 트렌치, 청바지">
         </div>
         <div class="field">
           <label>The occasion</label>
@@ -296,7 +296,7 @@
             <button onclick="pick(this,'파티')">파티</button>
             <button onclick="pick(this,'공연·전시')">공연·전시</button>
           </div>
-          <input type="text" id="situation" placeholder="직접 입력해도 됩니다">
+          <input type="text" id="situation" maxlength="100" placeholder="직접 입력해도 됩니다">
         </div>
         <button class="submit" onclick="recommend()">Get the look</button>
         <div class="msg" id="msg"></div>

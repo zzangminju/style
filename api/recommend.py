@@ -1,11 +1,65 @@
 import json
 import os
+import time
+import threading
 import urllib.request
 import urllib.error
+from collections import defaultdict, deque
 from http.server import BaseHTTPRequestHandler
 
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 MODEL = "gpt-4o-mini"
+
+# ── 남용 방지 설정 ──────────────────────────────────────────
+MAX_ITEM_LEN = 200        # 가진 아이템 최대 글자 수
+MAX_SITUATION_LEN = 100   # 상황 최대 글자 수
+RATE_LIMIT = 5            # 허용 호출 횟수
+RATE_WINDOW = 60          # 위 횟수를 세는 시간(초)
+
+# IP별 요청 시각 기록. 주의: 서버리스에선 인스턴스마다 메모리가 분리되어
+# 완벽히 공유되지 않는다. 연속 남용은 막지만, 완벽한 제한은 외부 저장소(KV) 필요.
+_hits = defaultdict(deque)
+_hits_lock = threading.Lock()
+
+
+def check_length(item, situation):
+    """입력이 너무 길면 안내 메시지를, 정상이면 None을 반환한다."""
+    if len(item) > MAX_ITEM_LEN:
+        return f"가진 아이템은 {MAX_ITEM_LEN}자 이내로 입력해 주세요."
+    if len(situation) > MAX_SITUATION_LEN:
+        return f"상황 설명은 {MAX_SITUATION_LEN}자 이내로 입력해 주세요."
+    return None
+
+
+def rate_limit_check(ip):
+    """IP의 최근 호출을 세어 제한 초과 여부를 반환한다.
+
+    반환: (허용 여부, 다시 시도까지 남은 초)
+    sliding window: 창(RATE_WINDOW)보다 오래된 기록은 버리고 남은 개수로 판단.
+    """
+    now = time.time()
+    with _hits_lock:
+        dq = _hits[ip]
+        while dq and now - dq[0] >= RATE_WINDOW:
+            dq.popleft()
+        if len(dq) >= RATE_LIMIT:
+            retry_after = min(RATE_WINDOW, int(RATE_WINDOW - (now - dq[0])) + 1)
+            return False, retry_after
+        dq.append(now)
+        if not dq:
+            _hits.pop(ip, None)  # 빈 기록 정리 (메모리 관리)
+        return True, 0
+
+
+def get_client_ip(headers, fallback=""):
+    """프록시(Vercel) 뒤의 실제 클라이언트 IP를 헤더에서 찾는다."""
+    xff = headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+    xri = headers.get("x-real-ip")
+    if xri:
+        return xri.strip()
+    return fallback
 
 
 def build_prompt(item, situation):
@@ -99,13 +153,15 @@ def ask_openai(item, situation):
 
 
 class handler(BaseHTTPRequestHandler):
-    def _send(self, status, payload):
+    def _send(self, status, payload, extra_headers=None):
         body = json.dumps(payload).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        for key, value in (extra_headers or {}).items():
+            self.send_header(key, value)
         self.end_headers()
         self.wfile.write(body)
 
@@ -129,6 +185,22 @@ class handler(BaseHTTPRequestHandler):
 
         if not item or not situation:
             return self._send(400, {"error": "item과 situation을 모두 보내주세요."})
+
+        # (2) 입력 길이 제한
+        length_error = check_length(item, situation)
+        if length_error:
+            return self._send(400, {"error": length_error})
+
+        # (1) IP 기반 호출 횟수 제한
+        client_ip = get_client_ip(self.headers, self.client_address[0])
+        allowed, retry_after = rate_limit_check(client_ip)
+        if not allowed:
+            return self._send(
+                429,
+                {"error": f"요청이 너무 많아요. {retry_after}초 후 다시 시도해 주세요.",
+                 "retryAfter": retry_after},
+                extra_headers={"Retry-After": str(retry_after)},
+            )
 
         try:
             result = ask_openai(item, situation)
