@@ -167,6 +167,11 @@
   /* ── 항목별 코디 결과 ── */
   .look { display: none; }
   .look.show { display: block; animation: riseIn 0.6s ease both; }
+  /* 옷이 상황에 안 어울릴 때 뜨는 경고 배너 */
+  .look-caution { display: none; border: 1px solid var(--accent); padding: 16px 18px; margin-bottom: 26px; }
+  .look-caution.show { display: block; }
+  .look-caution .lc-label { display: block; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 7px; }
+  .look-caution .lc-text { font-family: 'Fraunces', serif; font-size: 17px; line-height: 1.5; color: var(--ink); }
   .look-summary {
     font-family: 'Fraunces', serif; font-style: italic; font-size: clamp(22px, 3.5vw, 27px);
     line-height: 1.45; color: var(--ink); padding-bottom: 26px; margin-bottom: 8px;
@@ -309,6 +314,10 @@
           <div class="load-bar"></div>
         </div>
         <div class="look" id="lookCard">
+          <div class="look-caution" id="lookCaution">
+            <span class="lc-label">주의 · Heads up</span>
+            <span class="lc-text" id="lookCautionText"></span>
+          </div>
           <p class="look-summary" id="lookSummary"></p>
           <div class="look-list" id="lookList"></div>
         </div>
@@ -455,6 +464,12 @@
   }
   // 코디 객체를 항목별 카드로 그린다. 값이 비어 있는 항목은 건너뛴다.
   function renderLook(outfit) {
+    // 옷이 상황에 안 어울리면 caution 배너 표시, 아니면 숨김
+    const caution = (outfit.caution || '').trim();
+    const cautionBox = document.getElementById('lookCaution');
+    document.getElementById('lookCautionText').textContent = caution;
+    cautionBox.classList.toggle('show', caution.length > 0);
+
     document.getElementById('lookSummary').textContent = outfit.summary || '';
     const list = document.getElementById('lookList');
     list.innerHTML = '';
