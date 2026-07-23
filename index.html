@@ -96,13 +96,31 @@
   .kicker { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 16px; }
   .rec-top h2 { font-family: 'Fraunces', serif; font-size: clamp(42px, 8vw, 96px); font-weight: 900; line-height: 0.9; letter-spacing: -0.03em; }
 
-  .form-wrap { display: grid; grid-template-columns: 1fr 1fr; }
-  .form-side { padding: 64px 60px 64px 0; }
-  .result-side { padding: 64px 0 64px 60px; border-left: 1px solid #c9c5bd; }
+  /* 처음엔 폼이 화면 가운데(600px), 추천이 시작되면 좌우 2단(50:50)으로 전환된다.
+     flex-grow(0→1)를 애니메이션해서 부드럽게 펼친다. */
+  .form-wrap { display: flex; justify-content: center; align-items: flex-start; }
+  .form-side {
+    flex: 0 1 600px; padding: 64px 0;
+    transition: flex-grow 0.55s ease, flex-basis 0.55s ease, padding-right 0.55s ease;
+  }
+  .result-side {
+    flex: 0 1 0; opacity: 0; overflow: hidden; padding: 64px 0;
+    transition: flex-grow 0.55s ease, opacity 0.5s ease, padding 0.55s ease;
+  }
+  .form-wrap.has-result .form-side { flex-grow: 1; flex-basis: 0; padding-right: 60px; }
+  .form-wrap.has-result .result-side {
+    flex-grow: 1; opacity: 1; padding-left: 60px; border-left: 1px solid #c9c5bd;
+  }
   @media (max-width: 800px) {
-    .form-wrap { grid-template-columns: 1fr; }
-    .form-side { padding: 48px 0; }
-    .result-side { padding: 48px 0; border-left: none; border-top: 1px solid #c9c5bd; }
+    /* 모바일: 항상 위아래로 쌓이는 기존 방식 유지 */
+    .form-wrap { flex-direction: column; }
+    .form-side, .form-wrap.has-result .form-side {
+      flex: 0 0 auto; width: 100%; padding: 48px 0; padding-right: 0;
+    }
+    .result-side, .form-wrap.has-result .result-side {
+      flex: 0 0 auto; width: 100%; opacity: 1; overflow: visible;
+      padding: 48px 0 0; padding-left: 0; border-left: none; border-top: 1px solid #c9c5bd; margin-top: 8px;
+    }
   }
   .field { margin-bottom: 32px; }
   .field label { display: block; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; color: var(--muted); margin-bottom: 14px; }
@@ -394,11 +412,14 @@
     if (!situation) { msg.textContent = '어디 가는지 알려주면 더 잘 맞춰드려요.'; return; }
 
     const btn = document.querySelector('.submit');
+    const formWrap = document.querySelector('.form-wrap');
     const lookCard = document.getElementById('lookCard');
     const loading = document.getElementById('loading');
     const placeholder = document.getElementById('placeholder');
     msg.textContent = '';
     placeholder.style.display = 'none';
+    // 좌우 2단으로 펼치며 오른쪽에 로딩 → 결과를 표시
+    formWrap.classList.add('has-result');
     document.getElementById('resultTitle').classList.add('show');
     lookCard.classList.remove('show');
     loading.classList.add('show');
@@ -420,6 +441,8 @@
     } catch (err) {
       loading.classList.remove('show');
       lookCard.classList.remove('show');
+      // 오류 시 다시 가운데 폼으로 접고, 안내는 폼 아래에 표시
+      formWrap.classList.remove('has-result');
       placeholder.style.display = 'block';
       placeholder.textContent = '문제가 생겼어요. 잠시 후 다시 시도해 주세요.';
       msg.textContent = err.message;
